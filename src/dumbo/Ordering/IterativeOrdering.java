@@ -206,7 +206,6 @@ public class IterativeOrdering extends OrderingBase {
                     biggestIndex = k;
                 }
             }
-//             TODO: might not be necessary to change both.
             int newRank = mmerRanks[biggestIndex] + (int) (numMmers * percentagePunishment);
             mmerRanks[biggestIndex] = newRank;
             mmerRanks[stringUtils.getReversedMmer(biggestIndex, pivotLength)] = newRank;
