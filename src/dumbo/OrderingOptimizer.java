@@ -4,6 +4,7 @@ import dumbo.Ordering.*;
 import dumbo.Ordering.Standard.LexicographicOrdering;
 import dumbo.Ordering.Standard.RandomOrdering;
 import dumbo.Ordering.Standard.LexicographicSignatureOrdering;
+
 import java.util.Random;
 
 public class OrderingOptimizer {
@@ -24,7 +25,7 @@ public class OrderingOptimizer {
                     "Options Available: \n" +
                     "[-m minimizer length] : (Integer); Default: 7" + "\n" +
                     "[-k kmer length] : (Integer); Default: 60" + "\n" +
-                    "[-order order] : adaorder or lexicographic or signature or random; default adaorder" + "\n"+
+                    "[-order order] : adaorder or lexicographic or signature or random; default adaorder" + "\n" +
                     "[-R number of AdaOrder Runs] : (Integer); Default: 1000" + "\n" +
                     "[-N number of samples per round of AdaOrder] : (Integer); Default: 100000" + "\n" +
                     "[-p penalty factor of AdaOrder] : (double); Default: 0.01" + "\n");
@@ -58,7 +59,7 @@ public class OrderingOptimizer {
         }
 
 
-        System.out.print("Input File: " + kmerSetFile + "\n" +
+        System.out.print("Input File: " + infile + "\n" +
                 "k-mer Length: " + k + "\n" +
                 "Minimizer Length: " + m + "\n" +
                 "Ordering: " + version + "\n");
@@ -67,12 +68,12 @@ public class OrderingOptimizer {
         switch (version) {
 
             case "adaorder":
-                System.out.print("Parameters for AdaOrder:" +
+                System.out.print("Parameters for AdaOrder: \n" +
                         "N: " + N + "\n" +
                         "R: " + R + "\n" +
                         "p: " + p + "\n");
                 IterativeOrdering iterativeSignature = new IterativeOrdering(m, infile, bufferSize, k,
-                        N, R, elementsToPush, 0, p, true);
+                        N, R, elementsToPush, p, true);
                 System.out.println("Optimizing an ordering:");
                 iterativeSignature.initializeRanks();
                 ordering = iterativeSignature;
@@ -93,12 +94,11 @@ public class OrderingOptimizer {
         }
 
 
-
         ExportUtils exportUtils = new ExportUtils();
 
         int[] ranks = ordering.getRanks();
         long[] longRanks = new long[ranks.length];
-        for (int i = 0; i < longRanks.length; longRanks[i]=ranks[i], i++) ;
+        for (int i = 0; i < longRanks.length; longRanks[i] = ranks[i], i++) ;
 
         exportUtils.exportOrderingForCpp(longRanks);
 
@@ -108,6 +108,7 @@ public class OrderingOptimizer {
             try {
 
                 System.out.println("Counting minimizer appearances:");
+                System.out.print("Input File: " + kmerSetFile);
                 MinimizerCounter minimizerCounter = new MinimizerCounter(k, kmerSetFile, m, bufferSize, ordering);
                 counters = minimizerCounter.Run();
 

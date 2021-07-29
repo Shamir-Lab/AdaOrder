@@ -17,14 +17,12 @@ public class IterativeOrdering extends OrderingBase {
     private SignatureUtils signatureUtils;
     private HashMap<Integer, HashSet<String>> frequency;
 
-    private int statisticsSamples;
     private int roundSamples;
     private int rounds;
     private int elementsToPush;
 
     private double percentagePunishment;
 
-    private long[] statFrequency;
 
     private boolean useSignature;
 
@@ -33,12 +31,11 @@ public class IterativeOrdering extends OrderingBase {
 
     public IterativeOrdering(
             int pivotLength, String infile, int bufSize, int k, int roundSamples, int rounds,
-            int elementsToPush, int statisticsSamples, double percentagePunishment, boolean useSignature) {
+            int elementsToPush, double percentagePunishment, boolean useSignature) {
         super(pivotLength);
         this.roundSamples = roundSamples;
         this.rounds = rounds;
         this.elementsToPush = elementsToPush;
-        this.statisticsSamples = statisticsSamples;
         this.percentagePunishment = percentagePunishment;
         this.useSignature = useSignature;
         this.inputFile = infile;
@@ -51,8 +48,8 @@ public class IterativeOrdering extends OrderingBase {
 
     public IterativeOrdering(
             int pivotLength, String infile, int bufSize, int k, int roundSamples, int rounds,
-            int elementsToPush, int statisticsSamples, double percentagePunishment, boolean useSignature, int[] initialOrdering) {
-        this(pivotLength, infile, bufSize, k, roundSamples, rounds, elementsToPush, statisticsSamples, percentagePunishment, useSignature);
+            int elementsToPush, double percentagePunishment, boolean useSignature, int[] initialOrdering) {
+        this(pivotLength, infile, bufSize, k, roundSamples, rounds, elementsToPush, percentagePunishment, useSignature);
         mmerRanks = initialOrdering.clone();
         initialized = true;
         badArgumentsThrow();
@@ -60,8 +57,8 @@ public class IterativeOrdering extends OrderingBase {
 
     public IterativeOrdering(
             int pivotLength, String infile, int bufSize, int k, int roundSamples, int rounds,
-            int elementsToPush, int statisticsSamples, double percentagePunishment, boolean useSignature, OrderingBase initialOrdering) throws IOException {
-        this(pivotLength, infile, bufSize, k, roundSamples, rounds, elementsToPush, statisticsSamples, percentagePunishment, useSignature);
+            int elementsToPush, double percentagePunishment, boolean useSignature, OrderingBase initialOrdering) throws IOException {
+        this(pivotLength, infile, bufSize, k, roundSamples, rounds, elementsToPush, percentagePunishment, useSignature);
         mmerRanks = initialOrdering.getRanks().clone();
         initialized = true;
         badArgumentsThrow();
@@ -77,6 +74,7 @@ public class IterativeOrdering extends OrderingBase {
 
     protected void initFrequency() throws Exception {
 
+
         if (!initialized) {
             for (int i = 0; i < numMmers; i++) {
                 int canonical = Math.min(i, stringUtils.getReversedMmer(i, pivotLength));
@@ -85,7 +83,7 @@ public class IterativeOrdering extends OrderingBase {
             }
             if (useSignature) {
                 for (int i = 0; i < numMmers; i++) {
-                    if (!signatureUtils.isAllowed(i) && i < stringUtils.getReversedMmer(i, pivotLength)) {
+                    if (!signatureUtils.isAllowed(i) && i <= stringUtils.getReversedMmer(i, pivotLength)) {
                         mmerRanks[i] += numMmers;
                         mmerRanks[stringUtils.getReversedMmer(i, pivotLength)] += numMmers;
                     }
@@ -95,13 +93,16 @@ public class IterativeOrdering extends OrderingBase {
 
 
         boolean keepSample = true;
+        if (rounds < 1) {
+            keepSample = false;
+        }
+
         int numSampled = 0;
         int roundNumber = 0;
 
         FileReader frG = new FileReader(inputFile);
         BufferedReader bfrG = new BufferedReader(frG, bufSize);
 
-        statFrequency = new long[numMmers];
         HashMap<Integer, HashSet<String>> pmerFrequency = new HashMap<>(roundSamples * 2);
 
         String skippedDescribeLine, line;
@@ -118,12 +119,9 @@ public class IterativeOrdering extends OrderingBase {
             readLen = line.length();
             lineCharArray = line.toCharArray();
 
-            if(readLen < k)
+            if (readLen < k)
                 continue;
 
-//            bfrG.read(lineCharArray, 0, readLen);
-//            bfrG.read();
-//            String line = new String(lineCharArray);
 
             if (stringUtils.isReadLegal(lineCharArray)) {
 
@@ -132,7 +130,7 @@ public class IterativeOrdering extends OrderingBase {
                 minValueNormalized = stringUtils.getNormalizedValue(minValue, pivotLength);
                 currentValue = stringUtils.getDecimal(lineCharArray, k - pivotLength, k);
 
-                updateStatistics(roundNumber, pmerFrequency, minValueNormalized, line, 0);
+                updateStatistics(pmerFrequency, minValueNormalized, line, 0);
 
                 int bound = readLen - k + 1;
                 for (int i = 1; i < bound; i++) {
@@ -144,7 +142,7 @@ public class IterativeOrdering extends OrderingBase {
                         minValue = stringUtils.getDecimal(lineCharArray, min_pos, min_pos + pivotLength);
                         minValueNormalized = stringUtils.getNormalizedValue(minValue, pivotLength);
 
-                        updateStatistics(roundNumber, pmerFrequency, minValueNormalized, line, i);
+                        updateStatistics(pmerFrequency, minValueNormalized, line, i);
                     } else {
                         int lastIndexInWindow = k + i - pivotLength;
                         if (compareMmer(currentValue, minValue) < 0) {
@@ -152,24 +150,19 @@ public class IterativeOrdering extends OrderingBase {
                             minValue = currentValue;
                             minValueNormalized = stringUtils.getNormalizedValue(minValue, pivotLength);
 
-                            updateStatistics(roundNumber, pmerFrequency, minValueNormalized, line, i);
+                            updateStatistics(pmerFrequency, minValueNormalized, line, i);
                         }
                     }
-                    updateStatistics(roundNumber, pmerFrequency, minValueNormalized, line, i);
+                    updateStatistics(pmerFrequency, minValueNormalized, line, i);
                 }
             }
 
             if (numSampled >= roundSamples) {
                 roundNumber++;
-                if (roundNumber <= rounds) {  // TODO: SHOULD THIS BE < and not <=
-                    numSampled = 0;
-                    adaptOrdering(pmerFrequency);
-                    pmerFrequency.clear();
-                    if (roundNumber == rounds) {
-                        System.out.println("Sampling for binning round");
-                        roundSamples = statisticsSamples;
-                    }
-                } else {
+                numSampled = 0;
+                adaptOrdering(pmerFrequency);
+                pmerFrequency.clear();
+                if (roundNumber == rounds) {
                     keepSample = false;
                 }
             }
@@ -181,14 +174,11 @@ public class IterativeOrdering extends OrderingBase {
         frG.close();
     }
 
-    private void updateStatistics(int roundNumber, HashMap<Integer, HashSet<String>> pmerFrequency, int minValueNormalized, String line, int startPosition) {
-        if (roundNumber == rounds)
-            statFrequency[minValueNormalized]++;
-        else {
-            if (!pmerFrequency.containsKey(minValueNormalized))
-                pmerFrequency.put(minValueNormalized, new HashSet<>());
-            pmerFrequency.get(minValueNormalized).add(stringUtils.getCanonical(line.substring(startPosition, k + startPosition)));
-        }
+    private void updateStatistics(HashMap<Integer, HashSet<String>> pmerFrequency, int minValueNormalized, String line, int startPosition) {
+        if (!pmerFrequency.containsKey(minValueNormalized))
+            pmerFrequency.put(minValueNormalized, new HashSet<>());
+        pmerFrequency.get(minValueNormalized).add(stringUtils.getCanonical(line.substring(startPosition, k + startPosition)));
+
     }
 
 
