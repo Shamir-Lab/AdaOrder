@@ -1,6 +1,12 @@
 # AdaOrder
 
+This implementation of AdaOrder corresponds to the following papaer: .
+
+To cite this paper use the following form: 
+
 ## Usage
+
+First, compile the source code using your compiler to "AdaOrder.jar".
 
 AdaOrder generates 2 files in the working directory: freq.txt, ranks.txt.
 ranks.txt is the file with the generated minimizer order [Algorithm 1 in our paper]. 
