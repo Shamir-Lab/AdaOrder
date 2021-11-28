@@ -5,7 +5,7 @@ This implementation of AdaOrder corresponds to the following paper: .
 To cite this paper use the following form: 
 
 
-In "orders_minimizer_7.zip" are pre computed orders by AdaOrder, on 4 datasets used in the paper with "k=28,55".
+In `orders_minimizer_7.zip` are pre computed orders by AdaOrder, on 4 datasets used in the paper with `k=28,55`.
 
 ## Usage
 
