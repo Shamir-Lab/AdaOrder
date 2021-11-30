@@ -28,7 +28,8 @@ AdaOrder can be controlled by several command line options and flags.
 | `‑in <path>`                   | Dataset to generate AdaOrder for.      |    |
 
 
-In `orders_minimizer_7.zip` are pre computed orders by AdaOrder, on 4 datasets used in the paper with `k=28,55`.
+Precomputed orders: Orders computed by AdaOrder, on 4 datasets from the paper (H. Sapiens, A. Thaliana and fresh water metagenome) with `k=28,55`. By using them for other datasets from the same species, AdaOrder computing time can be drastically reduced or avoided altogether.
+
 
 
 
