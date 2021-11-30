@@ -1,11 +1,9 @@
 # AdaOrder
+AdaOrder is an algorithm for adapting the minimizer order to an input dataset.
+It aims to flatten the k-mer load distribution across minimizers.
 
-This implementation of AdaOrder corresponds to the following paper: .
+This implementation of AdaOrder is described in the following paper: .
 
-To cite this paper use the following form: 
-
-
-In `orders_minimizer_7.zip` are pre computed orders by AdaOrder, on 4 datasets used in the paper with `k=28,55`.
 
 ## Usage
 
@@ -28,6 +26,11 @@ AdaOrder can be controlled by several command line options and flags.
 | `‑N <int>`          | Set the number of samples per round of AdaOrder.      |    `100000` |
 | `‑p <float>`          | Set the penalty factor of AdaOrder.      |    `0.01` |
 | `‑in <path>`                   | Dataset to generate AdaOrder for.      |    |
+
+
+In `orders_minimizer_7.zip` are pre computed orders by AdaOrder, on 4 datasets used in the paper with `k=28,55`.
+
+
 
 ## DGerbil 
 DGerbil is a modification of Gerbil, a memory efficient k-mer counter, that uses AdaOrder instaed of signature, for improved memory usage.
