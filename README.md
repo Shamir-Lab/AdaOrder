@@ -32,3 +32,8 @@ AdaOrder can be controlled by several command line options and flags.
 ## DGerbil 
 DGerbil is a modification of Gerbil, a memory efficient k-mer counter, that uses AdaOrder instaed of signature, for improved memory usage.
 Its source code is found at https://github.com/Shamir-Lab/DGerbil.
+
+## FGerbil
+In the paper we present FGerbil - a modification of Gerbil that uses the frequency order instead of signature.
+FGerbil is a variant that we generated for comparison only, and in fact was interior. The only difference between FGerbil and DGerbil is the order and minimizer partition statistics provided to the modified Gerbil code. 
+Since it had inferior results we did not upload it to github as a tool.
